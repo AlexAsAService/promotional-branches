@@ -39,11 +39,11 @@ jobs:
           git tag ${{ steps.vars.outputs.rci }}
           git push origin ${{ steps.vars.outputs.rci }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PR_TOKEN }}
       - name: Create PR To Review
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PR_TOKEN }}
           branch: promote/review/${{ steps.vars.outputs.rci }}
           base: ${{ steps.vars.outputs.next_branch }}
           title: "Promote RCI ${{ steps.vars.outputs.rci }} to ${{ steps.vars.outputs.next_branch }}"
