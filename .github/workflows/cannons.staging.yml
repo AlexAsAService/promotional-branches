@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - staging
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   stub:
@@ -36,11 +39,11 @@ jobs:
           git tag ${{ steps.vars.outputs.rci }}
           git push origin ${{ steps.vars.outputs.rci }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create PR To Review
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           branch: promote/review/${{ steps.vars.outputs.rci }}
           base: ${{ steps.vars.outputs.next_branch }}
           title: "Promote RCI ${{ steps.vars.outputs.rci }} to ${{ steps.vars.outputs.next_branch }}"
