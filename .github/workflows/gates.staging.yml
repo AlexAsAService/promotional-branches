@@ -1,0 +1,14 @@
+name: Staging Gates
+description: Gate entry to staging
+
+on:
+  pull_request:
+    branches:
+      - staging
+
+jobs:
+  stub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Squawk
+        run: echo 'SQUAWK!'
