@@ -5,8 +5,9 @@ on:
   push:
     branches:
       - staging
+      - fix/stillbroken
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
@@ -28,8 +29,8 @@ jobs:
         run: |
           COMMIT_HASH=$(git rev-parse --short HEAD)
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          RCI="rc=${COMMIT_HASH}"
-          NEXT_BRANCH="review"
+          RCI="rc-${COMMIT_HASH}"
+          NEXT_BRANCH="staging"
           echo "rci=$RCI" >> "$GITHUB_OUTPUT"
           echo "next_branch=$NEXT_BRANCH" >> "$GITHUB_OUTPUT"
       - name: Tag commit with RCI
@@ -37,16 +38,34 @@ jobs:
           git config user.name "ci-bot"
           git config user.email "ci-bot@users.noreply.github.com"
           git tag ${{ steps.vars.outputs.rci }}
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
           git push origin ${{ steps.vars.outputs.rci }}
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.PR_TOKEN }}
+      - name: Create PR For Review
+        shell: bash
+        run: |
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git fetch origin ${{ steps.vars.outputs.next_branch }}
+          git checkout -b promotion/${{ steps.vars.outputs.next_branch }}/${{ steps.vars.outputs.rci }}
+          git cherry-pick ${{ github.sha }} || exit 1
+          git push origin ${{ steps.vars.outputs.next_branch }}
+          gh auth setup-git
+          gh pr create \
+            --title "Promote RC ${{ steps.vars.outputs.rci }} to ${{ steps.vars.outputs.next_branch }}"
+            --body "Cherry picked RC commit"
+            --head promotion/${{ steps.vars.outputs.next_branch }}/${{ steps.vars.outputs.rci }}
+            --base ${{ steps.vars.outputs.next_branch}}
+        env:
+          GH_TOKEN: ${{ secrets.PR_TOKEN }}
       - name: Create PR To Review
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PR_TOKEN }}
           branch: promote/review/${{ steps.vars.outputs.rci }}
           base: ${{ steps.vars.outputs.next_branch }}
           title: "Promote RCI ${{ steps.vars.outputs.rci }} to ${{ steps.vars.outputs.next_branch }}"
           body: |
-            Automated promotion of RCI `${{ steps.vars.outputs.rci }}` from `${{ github.ref_name }}` to `${{ steps.vars.output.next_branch }}`.
+            Automated promotion of RCI `${{ steps.vars.outputs.rci }}` from `${{ github.ref_name }}` to `${{ steps.vars.outputs.next_branch }}`.
             Commit: `${{ github.sha }}`
