@@ -12,3 +12,38 @@ jobs:
     steps:
       - name: Squawk
         run: echo "Squawk again!"
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set Variables
+        id: vars
+        shell: bash  
+        run: |
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          RCI="rc=${COMMIT_HASH}"
+          NEXT_BRANCH="review"
+          echo "rci=$RCI" >> "$GITHUB_OUTPUT"
+          echo "next_branch=$NEXT_BRANCH" >> "$GITHUB_OUTPUT"
+      - name: Tag commit with RCI
+        run: |
+          git confit user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git tag ${{ steps.vars.outputs.rci }}
+          git push origin ${{ steps.vars.outputs.rci }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Create PR To Review
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+          branch: promote/review/${{ steps.vars.outputs.rci }}
+          base: ${{ steps.vars.outputs.next_branch }}
+          title: "Promote RCI ${{ steps.vars.outputs.rci }} to ${{ steps.vars.outputs.next_branch }}"
+          body: |
+            Automated promotion of RCI `${{ steps.vars.outputs.rci }}` from `${{ github.ref_name }}` to `${{ steps.vars.output.next_branch }}`.
+            Commit: `${{ github.sha }}`
