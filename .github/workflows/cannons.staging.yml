@@ -29,7 +29,7 @@ jobs:
         run: |
           COMMIT_HASH=$(git rev-parse --short HEAD)
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          RCI="rc=${COMMIT_HASH}"
+          RCI="rc-${COMMIT_HASH}"
           NEXT_BRANCH="review"
           echo "rci=$RCI" >> "$GITHUB_OUTPUT"
           echo "next_branch=$NEXT_BRANCH" >> "$GITHUB_OUTPUT"
@@ -50,5 +50,5 @@ jobs:
           base: ${{ steps.vars.outputs.next_branch }}
           title: "Promote RCI ${{ steps.vars.outputs.rci }} to ${{ steps.vars.outputs.next_branch }}"
           body: |
-            Automated promotion of RCI `${{ steps.vars.outputs.rci }}` from `${{ github.ref_name }}` to `${{ steps.vars.output.next_branch }}`.
+            Automated promotion of RCI `${{ steps.vars.outputs.rci }}` from `${{ github.ref_name }}` to `${{ steps.vars.outputs.next_branch }}`.
             Commit: `${{ github.sha }}`
