@@ -31,7 +31,7 @@ jobs:
           echo "next_branch=$NEXT_BRANCH" >> "$GITHUB_OUTPUT"
       - name: Tag commit with RCI
         run: |
-          git confit user.name "ci-bot"
+          git config user.name "ci-bot"
           git config user.email "ci-bot@users.noreply.github.com"
           git tag ${{ steps.vars.outputs.rci }}
           git push origin ${{ steps.vars.outputs.rci }}
