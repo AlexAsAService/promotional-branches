@@ -42,6 +42,23 @@ jobs:
           git push origin ${{ steps.vars.outputs.rci }}
         env:
           GH_TOKEN: ${{ secrets.PR_TOKEN }}
+      - name: Create PR For Review
+        shell: bash
+        run: |
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git fetch origin ${{ steps.vars.outputs.next_branch }}
+          git checkout -b promotion/${{ steps.vars.outputs.next_branch }}/${{ steps.vars.outputs.rci }}
+          git cherry-pick ${{ github.sha }} || exit 1
+          git push origin ${{ steps.vars.outputs.next_branch }}
+          gh auth setup-git
+          gh pr create \
+            --title "Promote RC ${{ steps.vars.outputs.rci }} to ${{ steps.vars.outputs.next_branch }}"
+            --body "Cherry picked RC commit"
+            --head promotion/${{ steps.vars.outputs.next_branch }}/${{ steps.vars.outputs.rci }}
+            --base ${{ steps.vars.outputs.next_branch}}
+        env:
+          GH_TOKEN: ${{ secrets.PR_TOKEN }}
       - name: Create PR To Review
         uses: peter-evans/create-pull-request@v6
         with:
