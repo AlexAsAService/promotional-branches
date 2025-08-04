@@ -33,15 +33,15 @@ jobs:
           NEXT_BRANCH="review"
           echo "rci=$RCI" >> "$GITHUB_OUTPUT"
           echo "next_branch=$NEXT_BRANCH" >> "$GITHUB_OUTPUT"
-      # - name: Tag commit with RCI
-      #   run: |
-      #     git config user.name "ci-bot"
-      #     git config user.email "ci-bot@users.noreply.github.com"
-      #     git tag ${{ steps.vars.outputs.rci }}
-      #     git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
-      #     git push origin ${{ steps.vars.outputs.rci }}
-      #   env:
-      #     GH_TOKEN: ${{ secrets.PR_TOKEN }}
+      - name: Tag commit with RCI
+        run: |
+          git config user.name "ci-bot"
+          git config user.email "ci-bot@users.noreply.github.com"
+          git tag ${{ steps.vars.outputs.rci }}
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}
+          git push origin ${{ steps.vars.outputs.rci }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Create PR For Review
         shell: bash
         run: |
@@ -58,4 +58,4 @@ jobs:
             --head promotion/${{ steps.vars.outputs.next_branch }}/${{ steps.vars.outputs.rci }} \
             --base ${{ steps.vars.outputs.next_branch}} 
         env:
-          GH_TOKEN: ${{ secrets.PR_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
