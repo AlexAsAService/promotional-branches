@@ -30,7 +30,7 @@ jobs:
           COMMIT_HASH=$(git rev-parse --short HEAD)
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           RCI="rc-${COMMIT_HASH}"
-          NEXT_BRANCH="review"
+          NEXT_BRANCH="staging"
           echo "rci=$RCI" >> "$GITHUB_OUTPUT"
           echo "next_branch=$NEXT_BRANCH" >> "$GITHUB_OUTPUT"
       - name: Tag commit with RCI
